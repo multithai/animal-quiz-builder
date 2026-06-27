@@ -18,6 +18,7 @@ npm.cmd run dev
 - Score effects ต่อคำตอบแบบ `average`, `add`, และ `set`
 - Result profile matching ด้วยสูตร `Σ |คะแนนผู้เล่น - โปรไฟล์ผลลัพธ์|`
 - Inspector สำหรับแก้คำถาม, คำตอบ, route, score dimensions, result profiles
+- Export/share ภาพ Story 1080x1920 จากหน้าผลลัพธ์
 - Import/export JSON และบันทึกอัตโนมัติใน `localStorage`
 
 ## Key Files

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Camera, Download, RotateCcw, Share2 } from 'lucide-react'
 import type { AnswerOption, PlayedAnswer, QuizModel, ScoreEffect } from '../types'
 import {
   evaluateQuiz,
@@ -10,6 +10,7 @@ import {
   isQuestionNode,
   isResultNode,
 } from '../lib/quizEngine'
+import { buildStoryFileName, createStoryImageBlob, downloadBlob } from '../lib/storyShare'
 
 interface QuizPlayerProps {
   quiz: QuizModel
@@ -36,6 +37,17 @@ function answerSummary(quiz: QuizModel, answer: AnswerOption): string {
   }
 
   return answer.effects.map((effect) => effectLabel(quiz, effect)).join(' · ')
+}
+
+type StoryShareTarget = 'instagram' | 'facebook'
+
+type FileShareNavigator = Navigator & {
+  canShare?: (data: ShareData) => boolean
+  share?: (data: ShareData) => Promise<void>
+}
+
+function getShareUrl(): string {
+  return window.location.href.split('#')[0]
 }
 
 export function QuizPlayer({ quiz }: QuizPlayerProps) {
@@ -174,6 +186,7 @@ interface ResultViewProps {
 
 function ResultView({ quiz, history, evaluation, onReset }: ResultViewProps) {
   const result = evaluation.result
+  const [shareStatus, setShareStatus] = useState('')
 
   if (!result) {
     return (
@@ -186,6 +199,72 @@ function ResultView({ quiz, history, evaluation, onReset }: ResultViewProps) {
 
   const resultRanking = evaluation.ranking.find((item) => item.resultId === result.id)
   const topRanking = evaluation.ranking.slice(0, 4)
+  const shareUrl = getShareUrl()
+
+  async function makeStoryBlob() {
+    if (!result) {
+      throw new Error('Missing result')
+    }
+
+    return createStoryImageBlob({
+      quiz,
+      result,
+      evaluation,
+      shareUrl,
+    })
+  }
+
+  async function shareToStory(target: StoryShareTarget) {
+    if (!result) {
+      return
+    }
+
+    const targetLabel = target === 'instagram' ? 'Instagram Story' : 'Facebook Story'
+
+    try {
+      setShareStatus('กำลังสร้างภาพ Story...')
+      const blob = await makeStoryBlob()
+      const fileName = buildStoryFileName(result.title)
+      const file = new File([blob], fileName, { type: 'image/png' })
+      const shareData: ShareData = {
+        title: `${quiz.title}: ${result.title}`,
+        text: `ฉันได้ผลลัพธ์ ${result.title} จาก ${quiz.title} ${shareUrl}`,
+        files: [file],
+      }
+      const shareNavigator = navigator as FileShareNavigator
+
+      if (shareNavigator.canShare?.({ files: [file] }) && shareNavigator.share) {
+        await shareNavigator.share(shareData)
+        setShareStatus(`ส่งภาพไปที่ ${targetLabel} แล้ว`)
+        return
+      }
+
+      downloadBlob(blob, fileName)
+      setShareStatus('ดาวน์โหลดภาพ Story แล้ว')
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        setShareStatus('')
+        return
+      }
+
+      setShareStatus('แชร์ไม่สำเร็จ ลองดาวน์โหลดภาพแทน')
+    }
+  }
+
+  async function downloadStoryImage() {
+    if (!result) {
+      return
+    }
+
+    try {
+      setShareStatus('กำลังสร้างภาพ Story...')
+      const blob = await makeStoryBlob()
+      downloadBlob(blob, buildStoryFileName(result.title))
+      setShareStatus('ดาวน์โหลดภาพ Story แล้ว')
+    } catch {
+      setShareStatus('สร้างภาพ Story ไม่สำเร็จ')
+    }
+  }
 
   return (
     <section className="result-panel">
@@ -251,6 +330,28 @@ function ResultView({ quiz, history, evaluation, onReset }: ResultViewProps) {
           ) : null}
         </section>
       </div>
+
+      <section className="share-panel" style={{ ['--result-color' as string]: result.color }}>
+        <div>
+          <span>แชร์ผลลัพธ์</span>
+          <strong>{result.emoji} {result.title}</strong>
+        </div>
+        <div className="share-actions">
+          <button className="share-button instagram" type="button" onClick={() => shareToStory('instagram')}>
+            <Camera size={18} />
+            IG Story
+          </button>
+          <button className="share-button facebook" type="button" onClick={() => shareToStory('facebook')}>
+            <Share2 size={18} />
+            Facebook Story
+          </button>
+          <button className="share-button neutral" type="button" onClick={downloadStoryImage}>
+            <Download size={18} />
+            ดาวน์โหลด
+          </button>
+        </div>
+        {shareStatus ? <p aria-live="polite">{shareStatus}</p> : null}
+      </section>
 
       <section className="analysis-panel wide">
         <div className="section-heading">

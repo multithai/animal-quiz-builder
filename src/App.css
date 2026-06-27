@@ -289,6 +289,83 @@
   margin-top: 16px;
 }
 
+.share-panel {
+  margin-top: 16px;
+  min-height: 92px;
+  border: 1px solid color-mix(in srgb, var(--result-color), #ffffff 55%);
+  border-radius: 8px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(0, 1.6fr);
+  align-items: center;
+  gap: 14px;
+  background: color-mix(in srgb, var(--result-color), #ffffff 94%);
+}
+
+.share-panel span,
+.share-panel strong {
+  display: block;
+}
+
+.share-panel span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.share-panel strong {
+  color: #17231f;
+  font-size: 19px;
+  margin-top: 3px;
+}
+
+.share-panel p {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.share-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.share-button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.share-button.instagram {
+  border-color: #d86b90;
+  color: #9f315d;
+}
+
+.share-button.facebook {
+  border-color: #5a84d6;
+  color: #255aa8;
+}
+
+.share-button.neutral {
+  border-color: #aab7b2;
+  color: #3f4c49;
+}
+
+.share-button:hover {
+  background: #f9fbfa;
+  box-shadow: 0 8px 20px rgba(26, 39, 36, 0.1);
+}
+
 .analysis-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -841,7 +918,12 @@
 
   .result-hero,
   .result-grid,
+  .share-panel,
   .history-card {
+    grid-template-columns: 1fr;
+  }
+
+  .share-actions {
     grid-template-columns: 1fr;
   }
 
