@@ -19,6 +19,7 @@ npm.cmd run dev
 - Result profile matching ด้วยสูตร `Σ |คะแนนผู้เล่น - โปรไฟล์ผลลัพธ์|`
 - Inspector สำหรับแก้คำถาม, คำตอบ, route, score dimensions, result profiles
 - Export/share ภาพ Story 1080x1920 จากหน้าผลลัพธ์
+- คู่มือการใช้งานในหน้าเว็บ และเอกสาร [USER_GUIDE.md](USER_GUIDE.md)
 - Import/export JSON และบันทึกอัตโนมัติใน `localStorage`
 
 ## Key Files

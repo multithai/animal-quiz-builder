@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { GitBranch, Play, Settings2 } from 'lucide-react'
+import { BookOpen, GitBranch, Play, Settings2 } from 'lucide-react'
 import './App.css'
 import { AdminBuilder } from './components/AdminBuilder'
 import { QuizPlayer } from './components/QuizPlayer'
+import { UserGuideDialog } from './components/UserGuideDialog'
 import { sampleQuiz } from './data/sampleQuiz'
 import type { QuizModel } from './types'
 
@@ -32,6 +33,7 @@ function App() {
   const [quiz, setQuiz] = useState<QuizModel>(() => loadStoredQuiz())
   const [viewMode, setViewMode] = useState<ViewMode>('play')
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [guideOpen, setGuideOpen] = useState(false)
   const [saveState, setSaveState] = useState('saved')
 
   useEffect(() => {
@@ -60,24 +62,30 @@ function App() {
             <span>{quiz.scoring.mode} · {saveState}</span>
           </div>
         </div>
-        <nav className="segmented-control" aria-label="view mode">
-          <button
-            className={viewMode === 'play' ? 'active' : ''}
-            type="button"
-            onClick={() => setViewMode('play')}
-          >
-            <Play size={16} />
-            เล่น Quiz
+        <div className="header-actions">
+          <button className="guide-button" type="button" onClick={() => setGuideOpen(true)}>
+            <BookOpen size={16} />
+            คู่มือ
           </button>
-          <button
-            className={viewMode === 'admin' ? 'active' : ''}
-            type="button"
-            onClick={() => setViewMode('admin')}
-          >
-            <Settings2 size={16} />
-            หลังบ้าน
-          </button>
-        </nav>
+          <nav className="segmented-control" aria-label="view mode">
+            <button
+              className={viewMode === 'play' ? 'active' : ''}
+              type="button"
+              onClick={() => setViewMode('play')}
+            >
+              <Play size={16} />
+              เล่น Quiz
+            </button>
+            <button
+              className={viewMode === 'admin' ? 'active' : ''}
+              type="button"
+              onClick={() => setViewMode('admin')}
+            >
+              <Settings2 size={16} />
+              หลังบ้าน
+            </button>
+          </nav>
+        </div>
       </header>
 
       {viewMode === 'play' ? (
@@ -95,6 +103,7 @@ function App() {
           onSave={saveNow}
         />
       )}
+      <UserGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
   )
 }
