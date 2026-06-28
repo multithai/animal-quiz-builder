@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react'
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { BookOpen, GitBranch, Play, Settings2 } from 'lucide-react'
 import './App.css'
 import { AdminBuilder } from './components/AdminBuilder'
@@ -170,15 +170,17 @@ function App() {
       return true
     }
 
-    const password = window.prompt(`รหัสผ่าน Firebase admin สำหรับ ${ADMIN_EMAIL}`)
-    if (!password) {
-      return false
-    }
-
     setCloudBusy(true)
-    setCloudStatus('กำลังเข้าสู่ระบบ Firebase')
+    setCloudStatus('กำลังเข้าสู่ระบบ Google')
     try {
-      const credential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password)
+      const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({ prompt: 'select_account' })
+      const credential = await signInWithPopup(auth, provider)
+      if (credential.user.email !== ADMIN_EMAIL) {
+        await signOut(auth)
+        throw new Error(`บัญชีนี้ไม่ใช่ admin: ${credential.user.email ?? 'unknown'}`)
+      }
+
       setCloudStatus(`เข้าสู่ระบบแล้ว: ${credential.user.email ?? ADMIN_EMAIL}`)
       return true
     } catch (error) {

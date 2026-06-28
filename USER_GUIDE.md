@@ -176,7 +176,7 @@ quizzes/main
 
 - `โหลดจาก Firebase`: ดึง quiz เวอร์ชันกลางมาเป็น draft ในเครื่อง
 - `เผยแพร่`: ส่ง draft ปัจจุบันขึ้น Firebase ให้มือถือและผู้เล่นเห็น
-- `Login/Logout`: เข้าสู่ระบบ Firebase admin ก่อนเผยแพร่
+- `Login/Logout`: เข้าสู่ระบบ Google/Firebase admin ก่อนเผยแพร่
 
 Firestore rules ตั้งไว้แบบปลอดภัยคือทุกคนอ่านได้ แต่เขียนได้เฉพาะผู้ใช้ที่ login ด้วยอีเมล `multithai.info@gmail.com`
 
@@ -185,7 +185,7 @@ read: ทุกคน
 write: multithai.info@gmail.com เท่านั้น
 ```
 
-ถ้ากดเผยแพร่แล้ว login ไม่ได้ ให้เปิด Firebase Console > Authentication แล้วเปิด provider แบบ Email/Password สำหรับอีเมล admin ก่อน
+ถ้ากดเผยแพร่แล้ว login ไม่ได้ ให้เปิด Firebase Console > Authentication แล้วเปิด provider แบบ Google และเพิ่ม authorized domain `multithai.github.io` ก่อน
 
 ## การเผยแพร่บน GitHub Pages
 
