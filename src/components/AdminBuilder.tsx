@@ -209,38 +209,34 @@ function RouteEdge({
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} interactionWidth={34} />
-      <EdgeLabelRenderer>
-        <div
-          className={`route-edge-label nodrag nopan ${isSelected ? 'selected' : ''}`}
-          style={{
-            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-          }}
-        >
-          <button
-            className="route-label-main"
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-              data?.onSelect(id)
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} interactionWidth={40} />
+      {isSelected ? (
+        <EdgeLabelRenderer>
+          <div
+            className="route-edge-popup nodrag nopan"
+            style={{
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             }}
-            title="เลือกเส้น route"
+            onClick={(event) => event.stopPropagation()}
           >
-            {data?.label ?? 'route'}
-          </button>
-          <button
-            className="route-label-delete"
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-              data?.onDelete(id)
-            }}
-            title="ลบเส้นนี้"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
-      </EdgeLabelRenderer>
+            <div>
+              <span>Route</span>
+              <strong>{data?.label ?? 'route'}</strong>
+            </div>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                data?.onDelete(id)
+              }}
+              title="ลบเส้นนี้"
+            >
+              <Trash2 size={15} />
+              ลบเส้นนี้
+            </button>
+          </div>
+        </EdgeLabelRenderer>
+      ) : null}
     </>
   )
 }
