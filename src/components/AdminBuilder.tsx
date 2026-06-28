@@ -1,15 +1,19 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   Background,
+  BaseEdge,
   Controls,
+  EdgeLabelRenderer,
   Handle,
   MarkerType,
   MiniMap,
   Position,
   ReactFlow,
+  getSmoothStepPath,
   type Connection,
   type Edge as FlowEdge,
   type EdgeChange,
+  type EdgeProps,
   type Node as FlowNode,
   type NodeChange,
   type NodePositionChange,
@@ -31,6 +35,7 @@ import type {
   QuestionNode,
   QuizModel,
   QuizNode,
+  QuizEdge,
   ResultNode,
   ScoreDimension,
   ScoreEffect,
@@ -64,8 +69,16 @@ interface ResultFlowData extends Record<string, unknown> {
   dimensions: ScoreDimension[]
 }
 
+interface RouteFlowData extends Record<string, unknown> {
+  label: string
+  selected: boolean
+  onDelete: (edgeId: string) => void
+  onSelect: (edgeId: string) => void
+}
+
 type QuestionGraphNode = FlowNode<QuestionFlowData, 'questionNode'>
 type ResultGraphNode = FlowNode<ResultFlowData, 'resultNode'>
+type RouteGraphEdge = FlowEdge<RouteFlowData, 'routeEdge'>
 
 function uid(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
@@ -171,6 +184,71 @@ const nodeTypes = {
   resultNode: ResultCardNode,
 }
 
+function RouteEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  markerEnd,
+  style,
+  selected,
+  data,
+}: EdgeProps<RouteGraphEdge>) {
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  })
+  const isSelected = selected || data?.selected
+
+  return (
+    <>
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} interactionWidth={34} />
+      <EdgeLabelRenderer>
+        <div
+          className={`route-edge-label nodrag nopan ${isSelected ? 'selected' : ''}`}
+          style={{
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+          }}
+        >
+          <button
+            className="route-label-main"
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              data?.onSelect(id)
+            }}
+            title="เลือกเส้น route"
+          >
+            {data?.label ?? 'route'}
+          </button>
+          <button
+            className="route-label-delete"
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              data?.onDelete(id)
+            }}
+            title="ลบเส้นนี้"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  )
+}
+
+const edgeTypes = {
+  routeEdge: RouteEdge,
+}
+
 export function AdminBuilder({
   quiz,
   selectedNodeId,
@@ -180,6 +258,26 @@ export function AdminBuilder({
   onSave,
 }: AdminBuilderProps) {
   const importInputRef = useRef<HTMLInputElement | null>(null)
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
+
+  const selectRouteEdge = useCallback(
+    (edgeId: string) => {
+      setSelectedEdgeId(edgeId)
+      onSelectedNodeChange(null)
+    },
+    [onSelectedNodeChange],
+  )
+
+  const deleteRouteEdge = useCallback(
+    (edgeId: string) => {
+      onQuizChange({
+        ...quiz,
+        edges: quiz.edges.filter((edge) => edge.id !== edgeId),
+      })
+      setSelectedEdgeId((currentEdgeId) => (currentEdgeId === edgeId ? null : currentEdgeId))
+    },
+    [onQuizChange, quiz],
+  )
 
   const flowNodes = useMemo<FlowNode[]>(() => {
     return quiz.nodes.map((node) => ({
@@ -207,13 +305,23 @@ export function AdminBuilder({
         sourceHandle: edge.sourceAnswerId,
         target: edge.targetNodeId,
         targetHandle: 'in',
-        type: 'smoothstep',
-        label: answerLabel ?? 'route',
+        type: 'routeEdge',
         markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: isResultNode(targetNode) ? targetNode.color : '#1b7a6f', strokeWidth: 2 },
+        data: {
+          label: answerLabel ?? 'route',
+          selected: edge.id === selectedEdgeId,
+          onDelete: deleteRouteEdge,
+          onSelect: selectRouteEdge,
+        },
+        interactionWidth: 34,
+        selected: edge.id === selectedEdgeId,
+        style: {
+          stroke: edge.id === selectedEdgeId ? '#0b72ff' : isResultNode(targetNode) ? targetNode.color : '#1b7a6f',
+          strokeWidth: edge.id === selectedEdgeId ? 3 : 2,
+        },
       }
     })
-  }, [quiz])
+  }, [deleteRouteEdge, quiz, selectRouteEdge, selectedEdgeId])
 
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -248,12 +356,16 @@ export function AdminBuilder({
         return
       }
 
+      if (selectedEdgeId && removedEdgeIds.includes(selectedEdgeId)) {
+        setSelectedEdgeId(null)
+      }
+
       onQuizChange({
         ...quiz,
         edges: quiz.edges.filter((edge) => !removedEdgeIds.includes(edge.id)),
       })
     },
-    [onQuizChange, quiz],
+    [onQuizChange, quiz, selectedEdgeId],
   )
 
   const handleConnect = useCallback(
@@ -291,8 +403,10 @@ export function AdminBuilder({
           nextEdge,
         ],
       })
+      setSelectedEdgeId(nextEdge.id)
+      onSelectedNodeChange(null)
     },
-    [onQuizChange, quiz],
+    [onQuizChange, onSelectedNodeChange, quiz],
   )
 
   function addQuestionNode() {
@@ -433,11 +547,23 @@ export function AdminBuilder({
             nodes={flowNodes}
             edges={flowEdges}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
             onConnect={handleConnect}
-            onNodeClick={(_, node) => onSelectedNodeChange(node.id)}
-            onPaneClick={() => onSelectedNodeChange(null)}
+            onEdgeClick={(event, edge) => {
+              event.stopPropagation()
+              setSelectedEdgeId(edge.id)
+              onSelectedNodeChange(null)
+            }}
+            onNodeClick={(_, node) => {
+              setSelectedEdgeId(null)
+              onSelectedNodeChange(node.id)
+            }}
+            onPaneClick={() => {
+              setSelectedEdgeId(null)
+              onSelectedNodeChange(null)
+            }}
             fitView
             deleteKeyCode={['Backspace', 'Delete']}
           >
@@ -449,8 +575,10 @@ export function AdminBuilder({
         <AdminInspector
           quiz={quiz}
           selectedNodeId={selectedNodeId}
+          selectedEdgeId={selectedEdgeId}
           onQuizChange={onQuizChange}
           onSelectedNodeChange={onSelectedNodeChange}
+          onSelectedEdgeChange={setSelectedEdgeId}
         />
       </section>
     </main>
@@ -460,17 +588,22 @@ export function AdminBuilder({
 interface InspectorProps {
   quiz: QuizModel
   selectedNodeId: string | null
+  selectedEdgeId: string | null
   onQuizChange: (quiz: QuizModel) => void
   onSelectedNodeChange: (nodeId: string | null) => void
+  onSelectedEdgeChange: (edgeId: string | null) => void
 }
 
 function AdminInspector({
   quiz,
   selectedNodeId,
+  selectedEdgeId,
   onQuizChange,
   onSelectedNodeChange,
+  onSelectedEdgeChange,
 }: InspectorProps) {
   const selectedNode = selectedNodeId ? getNodeById(quiz, selectedNodeId) : undefined
+  const selectedEdge = selectedEdgeId ? quiz.edges.find((edge) => edge.id === selectedEdgeId) : undefined
 
   function replaceNode(nodeId: string, replacer: (node: QuizNode) => QuizNode): QuizModel {
     return {
@@ -492,6 +625,18 @@ function AdminInspector({
       ),
     })
     onSelectedNodeChange(null)
+  }
+
+  function deleteEdge(edgeId: string) {
+    onQuizChange({
+      ...quiz,
+      edges: quiz.edges.filter((edge) => edge.id !== edgeId),
+    })
+    onSelectedEdgeChange(null)
+  }
+
+  if (selectedEdge) {
+    return <RouteInspector quiz={quiz} edge={selectedEdge} onDelete={() => deleteEdge(selectedEdge.id)} />
   }
 
   if (isQuestionNode(selectedNode)) {
@@ -519,6 +664,51 @@ function AdminInspector({
   }
 
   return <GlobalInspector quiz={quiz} onQuizChange={onQuizChange} />
+}
+
+interface RouteInspectorProps {
+  quiz: QuizModel
+  edge: QuizEdge
+  onDelete: () => void
+}
+
+function RouteInspector({ quiz, edge, onDelete }: RouteInspectorProps) {
+  const sourceNode = getNodeById(quiz, edge.sourceNodeId)
+  const targetNode = getNodeById(quiz, edge.targetNodeId)
+  const answerLabel = isQuestionNode(sourceNode)
+    ? sourceNode.answers.find((answer) => answer.id === edge.sourceAnswerId)?.label
+    : undefined
+  const sourceTitle = isQuestionNode(sourceNode) ? sourceNode.title : 'ไม่พบคำถามต้นทาง'
+  const targetTitle = targetNode ? targetNode.title : 'ไม่พบปลายทาง'
+
+  return (
+    <aside className="inspector">
+      <InspectorHeader icon={<Workflow size={18} />} title="Route" subtitle={edge.id} />
+
+      <section className="route-detail-card">
+        <span>จากคำถาม</span>
+        <strong>{sourceTitle}</strong>
+      </section>
+
+      <section className="route-detail-card">
+        <span>คำตอบ</span>
+        <strong>{answerLabel ?? edge.sourceAnswerId}</strong>
+      </section>
+
+      <section className="route-detail-card">
+        <span>ไปยัง</span>
+        <strong>{targetTitle}</strong>
+        <small>{targetNode?.type ?? edge.targetNodeId}</small>
+      </section>
+
+      <button className="route-delete-action" type="button" onClick={onDelete}>
+        <Trash2 size={17} />
+        ลบเส้นนี้
+      </button>
+
+      <p className="hint-text">เลือกเส้น route แล้วกดปุ่มนี้เพื่อลบการเชื่อมโยงของคำตอบนั้น</p>
+    </aside>
+  )
 }
 
 interface NodeInspectorProps {

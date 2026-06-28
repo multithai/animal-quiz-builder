@@ -758,6 +758,57 @@
   display: none;
 }
 
+.route-edge-label {
+  position: absolute;
+  z-index: 6;
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 260px;
+  border: 1px solid rgba(30, 51, 47, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 22px rgba(28, 40, 37, 0.12);
+  pointer-events: all;
+  overflow: hidden;
+}
+
+.route-edge-label.selected {
+  border-color: #0b72ff;
+  box-shadow: 0 0 0 3px rgba(11, 114, 255, 0.12), 0 8px 22px rgba(28, 40, 37, 0.12);
+}
+
+.route-label-main,
+.route-label-delete {
+  min-height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.route-label-main {
+  min-width: 0;
+  padding: 0 11px;
+  font-weight: 760;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-label-delete {
+  width: 44px;
+  flex: 0 0 44px;
+  border-left: 1px solid var(--line);
+  color: var(--danger);
+}
+
+.route-label-main:hover,
+.route-label-delete:hover {
+  background: #f7faf8;
+}
+
 .graph-node {
   width: 290px;
   border: 1px solid var(--line-strong);
@@ -970,6 +1021,51 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.route-detail-card {
+  display: grid;
+  gap: 6px;
+  padding: 13px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+}
+
+.route-detail-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.route-detail-card strong {
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.route-detail-card small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.route-delete-action {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 6px;
+  border: 1px solid color-mix(in srgb, var(--danger), #ffffff 45%);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--danger), #ffffff 92%);
+  color: var(--danger);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 850;
+}
+
+.route-delete-action:hover {
+  background: color-mix(in srgb, var(--danger), #ffffff 86%);
 }
 
 .effect-editor {
