@@ -162,6 +162,31 @@ Question 12 / Answer A -> Result โลมา
 
 ถ้าแก้คำถามหรือคำตอบในหลังบ้านแล้วเปิดบนมือถือไม่เห็นทันที แปลว่ายังเป็น draft ในเครื่องเดิม ต้อง publish เวอร์ชันนั้นก่อน มือถือที่เปิด URL หลักจะอ่านเฉพาะเวอร์ชันที่ deploy แล้ว ไม่อ่าน draft จากเครื่องอื่น
 
+## การใช้ Firebase
+
+ระบบเชื่อม Firebase project `animal-quiz-builder-mt` แล้ว โดยเก็บ quiz กลางไว้ที่ Firestore document นี้
+
+```text
+quizzes/main
+```
+
+หน้าเล่น Quiz จะอ่านข้อมูลจาก Firebase อัตโนมัติ ถ้า Firebase โหลดไม่ได้จะ fallback ไปใช้ quiz ตัวอย่างที่ build มากับเว็บ
+
+ในหลังบ้านมีปุ่ม Cloud เพิ่มเติม
+
+- `โหลดจาก Firebase`: ดึง quiz เวอร์ชันกลางมาเป็น draft ในเครื่อง
+- `เผยแพร่`: ส่ง draft ปัจจุบันขึ้น Firebase ให้มือถือและผู้เล่นเห็น
+- `Login/Logout`: เข้าสู่ระบบ Firebase admin ก่อนเผยแพร่
+
+Firestore rules ตั้งไว้แบบปลอดภัยคือทุกคนอ่านได้ แต่เขียนได้เฉพาะผู้ใช้ที่ login ด้วยอีเมล `multithai.info@gmail.com`
+
+```text
+read: ทุกคน
+write: multithai.info@gmail.com เท่านั้น
+```
+
+ถ้ากดเผยแพร่แล้ว login ไม่ได้ ให้เปิด Firebase Console > Authentication แล้วเปิด provider แบบ Email/Password สำหรับอีเมล admin ก่อน
+
 ## การเผยแพร่บน GitHub Pages
 
 โปรเจกต์นี้ตั้ง GitHub Actions ไว้แล้ว

@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react'
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { BookOpen, GitBranch, Play, Settings2 } from 'lucide-react'
 import './App.css'
 import { AdminBuilder } from './components/AdminBuilder'
@@ -6,6 +7,8 @@ import { QuizPlayer } from './components/QuizPlayer'
 import { UserGuideDialog } from './components/UserGuideDialog'
 import { sampleQuiz } from './data/sampleQuiz'
 import { getAppearanceCssVariables, normalizeQuizAppearance } from './lib/appearance'
+import { ADMIN_EMAIL, auth } from './lib/firebaseClient'
+import { loadCloudQuiz, publishCloudQuiz, watchCloudQuiz } from './lib/quizRepository'
 import type { QuizModel } from './types'
 
 const STORAGE_KEY = 'animal-quiz-builder-v1'
@@ -80,6 +83,9 @@ function App() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [guideOpen, setGuideOpen] = useState(false)
   const [saveState, setSaveState] = useState('saved')
+  const [cloudUserEmail, setCloudUserEmail] = useState<string | null>(null)
+  const [cloudStatus, setCloudStatus] = useState('Cloud พร้อมใช้งาน')
+  const [cloudBusy, setCloudBusy] = useState(false)
 
   useEffect(() => {
     if (!usesLocalDraft) {
@@ -103,6 +109,29 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => {
+      setCloudUserEmail(user?.email ?? null)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (usesLocalDraft) {
+      return
+    }
+
+    setCloudStatus('กำลังฟังข้อมูลจาก Firebase')
+    return watchCloudQuiz(
+      (cloudQuiz) => {
+        setQuiz(cloudQuiz)
+        setCloudStatus('ซิงก์จาก Firebase แล้ว')
+      },
+      () => {
+        setCloudStatus('โหลด Firebase ไม่สำเร็จ ใช้ข้อมูลสำรอง')
+      },
+    )
+  }, [usesLocalDraft])
 
   function navigateToView(mode: ViewMode) {
     const draftPreview = mode === 'play' && usesLocalDraft
@@ -134,6 +163,86 @@ function App() {
   function resetSample() {
     setQuiz(cloneQuiz(sampleQuiz))
     setSelectedNodeId(null)
+  }
+
+  async function signInCloudAdmin(): Promise<boolean> {
+    if (auth.currentUser?.email === ADMIN_EMAIL) {
+      return true
+    }
+
+    const password = window.prompt(`รหัสผ่าน Firebase admin สำหรับ ${ADMIN_EMAIL}`)
+    if (!password) {
+      return false
+    }
+
+    setCloudBusy(true)
+    setCloudStatus('กำลังเข้าสู่ระบบ Firebase')
+    try {
+      const credential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password)
+      setCloudStatus(`เข้าสู่ระบบแล้ว: ${credential.user.email ?? ADMIN_EMAIL}`)
+      return true
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'login failed'
+      setCloudStatus('เข้าสู่ระบบ Firebase ไม่สำเร็จ')
+      window.alert(`เข้าสู่ระบบ Firebase ไม่สำเร็จ\n${message}`)
+      return false
+    } finally {
+      setCloudBusy(false)
+    }
+  }
+
+  async function signOutCloudAdmin() {
+    setCloudBusy(true)
+    try {
+      await signOut(auth)
+      setCloudStatus('ออกจากระบบ Firebase แล้ว')
+    } finally {
+      setCloudBusy(false)
+    }
+  }
+
+  async function loadFromCloud() {
+    setCloudBusy(true)
+    setCloudStatus('กำลังโหลดจาก Firebase')
+    try {
+      const cloudQuiz = await loadCloudQuiz()
+      if (!cloudQuiz) {
+        setCloudStatus('Firebase ยังไม่มี quiz config')
+        window.alert('Firebase ยังไม่มี quiz config ให้โหลด')
+        return
+      }
+
+      setUsesLocalDraft(true)
+      setSelectedNodeId(null)
+      setQuiz(cloudQuiz)
+      setCloudStatus('โหลดจาก Firebase มาเป็น draft แล้ว')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'load failed'
+      setCloudStatus('โหลดจาก Firebase ไม่สำเร็จ')
+      window.alert(`โหลดจาก Firebase ไม่สำเร็จ\n${message}`)
+    } finally {
+      setCloudBusy(false)
+    }
+  }
+
+  async function publishToCloud() {
+    const signedIn = await signInCloudAdmin()
+    if (!signedIn) {
+      return
+    }
+
+    setCloudBusy(true)
+    setCloudStatus('กำลังเผยแพร่ไป Firebase')
+    try {
+      await publishCloudQuiz(quiz)
+      setCloudStatus('เผยแพร่ไป Firebase แล้ว')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'publish failed'
+      setCloudStatus('เผยแพร่ Firebase ไม่สำเร็จ')
+      window.alert(`เผยแพร่ Firebase ไม่สำเร็จ\n${message}`)
+    } finally {
+      setCloudBusy(false)
+    }
   }
 
   return (
@@ -190,6 +299,13 @@ function App() {
           onSelectedNodeChange={setSelectedNodeId}
           onResetSample={resetSample}
           onSave={saveNow}
+          cloudBusy={cloudBusy}
+          cloudStatus={cloudStatus}
+          cloudUserEmail={cloudUserEmail}
+          onCloudLoad={loadFromCloud}
+          onCloudPublish={publishToCloud}
+          onCloudSignIn={signInCloudAdmin}
+          onCloudSignOut={signOutCloudAdmin}
         />
       )}
       {viewMode === 'admin' ? (

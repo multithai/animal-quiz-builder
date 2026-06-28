@@ -21,7 +21,10 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import {
+  Cloud,
   Download,
+  LogIn,
+  LogOut,
   Plus,
   RefreshCcw,
   Save,
@@ -64,6 +67,13 @@ interface AdminBuilderProps {
   onSelectedNodeChange: (nodeId: string | null) => void
   onResetSample: () => void
   onSave: () => void
+  cloudBusy: boolean
+  cloudStatus: string
+  cloudUserEmail: string | null
+  onCloudLoad: () => void
+  onCloudPublish: () => void
+  onCloudSignIn: () => void
+  onCloudSignOut: () => void
 }
 
 interface QuestionFlowData extends Record<string, unknown> {
@@ -259,6 +269,13 @@ export function AdminBuilder({
   onSelectedNodeChange,
   onResetSample,
   onSave,
+  cloudBusy,
+  cloudStatus,
+  cloudUserEmail,
+  onCloudLoad,
+  onCloudPublish,
+  onCloudSignIn,
+  onCloudSignOut,
 }: AdminBuilderProps) {
   const importInputRef = useRef<HTMLInputElement | null>(null)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
@@ -509,6 +526,44 @@ export function AdminBuilder({
           </div>
         </div>
         <div className="toolbar-actions">
+          <div className="cloud-toolbar" aria-label="Firebase cloud controls">
+            <span
+              className={`cloud-badge ${cloudUserEmail ? 'online' : 'offline'}`}
+              title={cloudUserEmail ?? 'ยังไม่ได้ login Firebase admin'}
+            >
+              <Cloud size={15} />
+              {cloudUserEmail ? 'Cloud online' : 'Cloud offline'}
+            </span>
+            <button
+              className="icon-button"
+              type="button"
+              onClick={onCloudLoad}
+              disabled={cloudBusy}
+              title="โหลดจาก Firebase"
+            >
+              <Download size={17} />
+            </button>
+            <button
+              className="tool-button"
+              type="button"
+              onClick={onCloudPublish}
+              disabled={cloudBusy}
+              title="เผยแพร่ขึ้น Firebase"
+            >
+              <Upload size={17} />
+              เผยแพร่
+            </button>
+            <button
+              className="icon-button"
+              type="button"
+              onClick={cloudUserEmail ? onCloudSignOut : onCloudSignIn}
+              disabled={cloudBusy}
+              title={cloudUserEmail ? 'ออกจากระบบ Firebase' : 'เข้าสู่ระบบ Firebase'}
+            >
+              {cloudUserEmail ? <LogOut size={17} /> : <LogIn size={17} />}
+            </button>
+            <span className="cloud-status-text">{cloudStatus}</span>
+          </div>
           <button className="tool-button" type="button" onClick={addQuestionNode} title="เพิ่มคำถาม">
             <Plus size={17} />
             คำถาม

@@ -22,13 +22,22 @@ npm.cmd run dev
 - คู่มือการใช้งานในหน้าเว็บ และเอกสาร [USER_GUIDE.md](USER_GUIDE.md)
 - Import/export JSON และบันทึกอัตโนมัติใน `localStorage`
 - แยกหน้า public กับ admin draft: `/admin` ใช้ draft ในเครื่อง ส่วน `/` ใช้เวอร์ชันที่ publish แล้ว
+- Firebase Firestore sync: public player reads `quizzes/main`, admin can load/publish cloud config
 
 ## Key Files
 
 - `src/data/sampleQuiz.ts` sample quiz และ result profiles
 - `src/lib/quizEngine.ts` scoring, ranking, route lookup
+- `src/lib/firebaseClient.ts` Firebase project config
+- `src/lib/quizRepository.ts` Firestore load/publish helpers
 - `src/components/QuizPlayer.tsx` หน้าเล่น quiz
 - `src/components/AdminBuilder.tsx` หลังบ้าน graph editor
+
+## Firebase
+
+- Project ID: `animal-quiz-builder-mt`
+- Firestore document: `quizzes/main`
+- Rules: public read, admin-only write for `multithai.info@gmail.com`
 
 ## Public Links
 

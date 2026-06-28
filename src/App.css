@@ -817,6 +817,60 @@
   gap: 8px;
 }
 
+.cloud-toolbar {
+  min-height: 38px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-soft);
+}
+
+.cloud-badge {
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-bold);
+  white-space: nowrap;
+}
+
+.cloud-badge.online {
+  color: #0f766e;
+  background: #e8f5f1;
+}
+
+.cloud-badge.offline {
+  color: #647067;
+  background: #eef1ee;
+}
+
+.cloud-status-text {
+  max-width: 190px;
+  color: var(--muted);
+  font-size: calc(12px * var(--font-scale, 1));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-button:disabled,
+.tool-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.icon-button:disabled:hover,
+.tool-button:disabled:hover {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
 .tool-button,
 .mini-button {
   min-height: 36px;
@@ -1445,6 +1499,15 @@
 
   .toolbar-actions {
     justify-content: flex-start;
+  }
+
+  .cloud-toolbar {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .cloud-status-text {
+    max-width: min(100%, 320px);
   }
 
   .admin-workbench {
