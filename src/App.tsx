@@ -9,6 +9,31 @@ import type { QuizModel } from './types'
 
 const STORAGE_KEY = 'animal-quiz-builder-v1'
 
+function getBasePath(): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  return base === '' ? '' : base
+}
+
+function getRoutePath(): string {
+  const basePath = getBasePath()
+  const pathname = window.location.pathname.replace(/\/$/, '') || '/'
+
+  if (basePath && pathname.startsWith(basePath)) {
+    return pathname.slice(basePath.length).replace(/\/$/, '') || '/'
+  }
+
+  return pathname
+}
+
+function getViewModeFromLocation(): ViewMode {
+  return getRoutePath() === '/admin' ? 'admin' : 'play'
+}
+
+function getViewPath(mode: ViewMode): string {
+  const basePath = getBasePath()
+  return mode === 'admin' ? `${basePath}/admin` : `${basePath || ''}/`
+}
+
 function cloneQuiz(quiz: QuizModel): QuizModel {
   return JSON.parse(JSON.stringify(quiz)) as QuizModel
 }
@@ -31,7 +56,7 @@ type ViewMode = 'play' | 'admin'
 
 function App() {
   const [quiz, setQuiz] = useState<QuizModel>(() => loadStoredQuiz())
-  const [viewMode, setViewMode] = useState<ViewMode>('play')
+  const [viewMode, setViewMode] = useState<ViewMode>(() => getViewModeFromLocation())
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [guideOpen, setGuideOpen] = useState(false)
   const [saveState, setSaveState] = useState('saved')
@@ -40,6 +65,23 @@ function App() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(quiz))
     setSaveState('saved')
   }, [quiz])
+
+  useEffect(() => {
+    function handlePopState() {
+      setViewMode(getViewModeFromLocation())
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  function navigateToView(mode: ViewMode) {
+    const nextPath = getViewPath(mode)
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({ mode }, '', nextPath)
+    }
+    setViewMode(mode)
+  }
 
   function saveNow() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(quiz))
@@ -71,7 +113,7 @@ function App() {
             <button
               className={viewMode === 'play' ? 'active' : ''}
               type="button"
-              onClick={() => setViewMode('play')}
+              onClick={() => navigateToView('play')}
             >
               <Play size={16} />
               เล่น Quiz
@@ -79,7 +121,7 @@ function App() {
             <button
               className={viewMode === 'admin' ? 'active' : ''}
               type="button"
-              onClick={() => setViewMode('admin')}
+              onClick={() => navigateToView('admin')}
             >
               <Settings2 size={16} />
               หลังบ้าน

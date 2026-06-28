@@ -175,6 +175,13 @@ URL ปัจจุบันคือ
 https://multithai.github.io/animal-quiz-builder/
 ```
 
+ลิงก์แยกตามโหมด
+
+```text
+หน้าเล่น Quiz: https://multithai.github.io/animal-quiz-builder/
+หลังบ้าน Admin: https://multithai.github.io/animal-quiz-builder/admin
+```
+
 ## Checklist ก่อนเผยแพร่
 
 - คำถามเริ่มต้นถูกต้อง

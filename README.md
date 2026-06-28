@@ -28,3 +28,8 @@ npm.cmd run dev
 - `src/lib/quizEngine.ts` scoring, ranking, route lookup
 - `src/components/QuizPlayer.tsx` หน้าเล่น quiz
 - `src/components/AdminBuilder.tsx` หลังบ้าน graph editor
+
+## Public Links
+
+- Player: `https://multithai.github.io/animal-quiz-builder/`
+- Admin: `https://multithai.github.io/animal-quiz-builder/admin`
