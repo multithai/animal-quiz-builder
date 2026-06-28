@@ -104,6 +104,10 @@
   padding: 34px 18px;
 }
 
+.public-play-shell .player-shell {
+  min-height: 100vh;
+}
+
 .quiz-card {
   width: min(1050px, 100%);
   min-height: 670px;
@@ -1075,7 +1079,7 @@
   }
 
   .quiz-card {
-    min-height: calc(100vh - 126px);
+    min-height: 100vh;
     border-radius: 0;
     border-left: 0;
     border-right: 0;

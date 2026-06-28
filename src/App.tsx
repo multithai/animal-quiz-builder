@@ -95,40 +95,41 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="brand-lockup">
-          <GitBranch size={22} />
-          <div>
-            <strong>Animal Quiz Builder</strong>
-            <span>{quiz.scoring.mode} · {saveState}</span>
+    <div className={`app-shell ${viewMode === 'play' ? 'public-play-shell' : 'admin-app-shell'}`}>
+      {viewMode === 'admin' ? (
+        <header className="app-header">
+          <div className="brand-lockup">
+            <GitBranch size={22} />
+            <div>
+              <strong>Animal Quiz Builder</strong>
+              <span>{quiz.scoring.mode} · {saveState}</span>
+            </div>
           </div>
-        </div>
-        <div className="header-actions">
-          <button className="guide-button" type="button" onClick={() => setGuideOpen(true)}>
-            <BookOpen size={16} />
-            คู่มือ
-          </button>
-          <nav className="segmented-control" aria-label="view mode">
-            <button
-              className={viewMode === 'play' ? 'active' : ''}
-              type="button"
-              onClick={() => navigateToView('play')}
-            >
-              <Play size={16} />
-              เล่น Quiz
+          <div className="header-actions">
+            <button className="guide-button" type="button" onClick={() => setGuideOpen(true)}>
+              <BookOpen size={16} />
+              คู่มือ
             </button>
-            <button
-              className={viewMode === 'admin' ? 'active' : ''}
-              type="button"
-              onClick={() => navigateToView('admin')}
-            >
-              <Settings2 size={16} />
-              หลังบ้าน
-            </button>
-          </nav>
-        </div>
-      </header>
+            <nav className="segmented-control" aria-label="view mode">
+              <button
+                type="button"
+                onClick={() => navigateToView('play')}
+              >
+                <Play size={16} />
+                เล่น Quiz
+              </button>
+              <button
+                className="active"
+                type="button"
+                onClick={() => navigateToView('admin')}
+              >
+                <Settings2 size={16} />
+                หลังบ้าน
+              </button>
+            </nav>
+          </div>
+        </header>
+      ) : null}
 
       {viewMode === 'play' ? (
         <QuizPlayer quiz={quiz} />
@@ -145,7 +146,9 @@ function App() {
           onSave={saveNow}
         />
       )}
-      <UserGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
+      {viewMode === 'admin' ? (
+        <UserGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
+      ) : null}
     </div>
   )
 }
