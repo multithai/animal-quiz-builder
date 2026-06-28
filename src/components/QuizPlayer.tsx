@@ -31,14 +31,6 @@ function effectLabel(quiz: QuizModel, effect: ScoreEffect): string {
   return `${dimension?.label ?? effect.dimensionId} ${operator} ${effect.value}`
 }
 
-function answerSummary(quiz: QuizModel, answer: AnswerOption): string {
-  if (answer.effects.length === 0) {
-    return 'ไม่เพิ่มคะแนน'
-  }
-
-  return answer.effects.map((effect) => effectLabel(quiz, effect)).join(' · ')
-}
-
 type StoryShareTarget = 'instagram' | 'facebook'
 
 type FileShareNavigator = Navigator & {
@@ -164,7 +156,6 @@ export function QuizPlayer({ quiz }: QuizPlayerProps) {
                   onClick={() => chooseAnswer(answer)}
                 >
                   <span>{answer.label}</span>
-                  <small>{answerSummary(quiz, answer)}</small>
                 </button>
               ))}
             </div>

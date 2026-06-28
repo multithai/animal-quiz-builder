@@ -259,7 +259,6 @@
   font-weight: 750;
 }
 
-.answer-button small,
 .hint-text {
   color: var(--muted);
   font-size: 12px;
