@@ -129,11 +129,13 @@ Question 12 / Answer A -> Result โลมา
 
 ## วิธีทดสอบ Quiz
 
-1. กด `เล่น Quiz`
+1. กด `เล่น Quiz` จากหน้าหลังบ้าน
 2. ตอบคำถามตาม flow ที่ตั้งไว้
 3. ดูหน้าผลลัพธ์
 4. ตรวจส่วน `โปรไฟล์คะแนน`, `วิธีคิด`, และ `คำตอบและคะแนน`
 5. ถ้าผลลัพธ์ไม่ตรง ให้กลับไปหลังบ้านแล้วปรับคะแนนหรือ result profile
+
+ปุ่ม `เล่น Quiz` ในหลังบ้านคือโหมด preview ของ draft ในเครื่อง URL จะมี `?draft=1` ต่อท้ายเพื่อแยกจากหน้าเล่นจริง
 
 ## การแชร์ผลลัพธ์
 
@@ -150,7 +152,7 @@ Question 12 / Answer A -> Result โลมา
 
 ## การบันทึกและสำรองข้อมูล
 
-ระบบบันทึกข้อมูลลง `localStorage` อัตโนมัติใน browser ที่ใช้งาน
+ระบบบันทึกข้อมูลหลังบ้านลง `localStorage` อัตโนมัติใน browser ที่ใช้งาน ข้อมูลนี้เป็น draft เฉพาะเครื่องนั้น
 
 เพื่อความปลอดภัยควร Export JSON เป็นระยะ โดยเฉพาะก่อนแก้ไขเยอะๆ
 
@@ -158,11 +160,13 @@ Question 12 / Answer A -> Result โลมา
 - ใช้ `Import JSON` เพื่อโหลด config กลับมา
 - ใช้ `รีเซ็ต` เฉพาะเมื่อแน่ใจ เพราะจะกลับไปเป็นตัวอย่างเริ่มต้น
 
+ถ้าแก้คำถามหรือคำตอบในหลังบ้านแล้วเปิดบนมือถือไม่เห็นทันที แปลว่ายังเป็น draft ในเครื่องเดิม ต้อง publish เวอร์ชันนั้นก่อน มือถือที่เปิด URL หลักจะอ่านเฉพาะเวอร์ชันที่ deploy แล้ว ไม่อ่าน draft จากเครื่องอื่น
+
 ## การเผยแพร่บน GitHub Pages
 
 โปรเจกต์นี้ตั้ง GitHub Actions ไว้แล้ว
 
-เมื่อ push code ไปที่ branch `main`
+เมื่อ push code หรือ quiz config เวอร์ชัน publish ไปที่ branch `main`
 
 1. GitHub Actions จะติดตั้ง dependencies
 2. build แอปด้วย Vite
@@ -180,6 +184,7 @@ https://multithai.github.io/animal-quiz-builder/
 ```text
 หน้าเล่น Quiz: https://multithai.github.io/animal-quiz-builder/
 หลังบ้าน Admin: https://multithai.github.io/animal-quiz-builder/admin
+Preview draft ในเครื่อง: https://multithai.github.io/animal-quiz-builder/?draft=1
 ```
 
 ## Checklist ก่อนเผยแพร่

@@ -21,6 +21,7 @@ npm.cmd run dev
 - Export/share ภาพ Story 1080x1920 จากหน้าผลลัพธ์
 - คู่มือการใช้งานในหน้าเว็บ และเอกสาร [USER_GUIDE.md](USER_GUIDE.md)
 - Import/export JSON และบันทึกอัตโนมัติใน `localStorage`
+- แยกหน้า public กับ admin draft: `/admin` ใช้ draft ในเครื่อง ส่วน `/` ใช้เวอร์ชันที่ publish แล้ว
 
 ## Key Files
 
@@ -33,3 +34,4 @@ npm.cmd run dev
 
 - Player: `https://multithai.github.io/animal-quiz-builder/`
 - Admin: `https://multithai.github.io/animal-quiz-builder/admin`
+- Draft preview from admin: `https://multithai.github.io/animal-quiz-builder/?draft=1`

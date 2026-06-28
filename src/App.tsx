@@ -30,9 +30,17 @@ function getViewModeFromLocation(): ViewMode {
   return getRoutePath() === '/admin' ? 'admin' : 'play'
 }
 
-function getViewPath(mode: ViewMode): string {
+function getViewPath(mode: ViewMode, options: { draft?: boolean } = {}): string {
   const basePath = getBasePath()
-  return mode === 'admin' ? `${basePath}/admin` : `${basePath || ''}/`
+  return mode === 'admin' ? `${basePath}/admin` : `${basePath || ''}/${options.draft ? '?draft=1' : ''}`
+}
+
+function isDraftPreviewFromLocation(): boolean {
+  return new URLSearchParams(window.location.search).get('draft') === '1'
+}
+
+function usesLocalDraftFromLocation(): boolean {
+  return getViewModeFromLocation() === 'admin' || isDraftPreviewFromLocation()
 }
 
 function cloneQuiz(quiz: QuizModel): QuizModel {
@@ -55,23 +63,41 @@ function loadStoredQuiz(): QuizModel {
   }
 }
 
+function loadPublishedQuiz(): QuizModel {
+  return cloneQuiz(sampleQuiz)
+}
+
+function loadQuizForCurrentLocation(): QuizModel {
+  return usesLocalDraftFromLocation() ? loadStoredQuiz() : loadPublishedQuiz()
+}
+
 type ViewMode = 'play' | 'admin'
 
 function App() {
-  const [quiz, setQuiz] = useState<QuizModel>(() => loadStoredQuiz())
   const [viewMode, setViewMode] = useState<ViewMode>(() => getViewModeFromLocation())
+  const [usesLocalDraft, setUsesLocalDraft] = useState(() => usesLocalDraftFromLocation())
+  const [quiz, setQuiz] = useState<QuizModel>(() => loadQuizForCurrentLocation())
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [guideOpen, setGuideOpen] = useState(false)
   const [saveState, setSaveState] = useState('saved')
 
   useEffect(() => {
+    if (!usesLocalDraft) {
+      return
+    }
+
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(quiz))
     setSaveState('saved')
-  }, [quiz])
+  }, [quiz, usesLocalDraft])
 
   useEffect(() => {
     function handlePopState() {
-      setViewMode(getViewModeFromLocation())
+      const nextViewMode = getViewModeFromLocation()
+      const nextUsesLocalDraft = usesLocalDraftFromLocation()
+      setViewMode(nextViewMode)
+      setUsesLocalDraft(nextUsesLocalDraft)
+      setSelectedNodeId(null)
+      setQuiz(nextUsesLocalDraft ? loadStoredQuiz() : loadPublishedQuiz())
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -79,14 +105,27 @@ function App() {
   }, [])
 
   function navigateToView(mode: ViewMode) {
-    const nextPath = getViewPath(mode)
-    if (window.location.pathname !== nextPath) {
+    const draftPreview = mode === 'play' && usesLocalDraft
+    const nextUsesLocalDraft = mode === 'admin' || draftPreview
+    const nextPath = getViewPath(mode, { draft: draftPreview })
+    const currentPath = `${window.location.pathname}${window.location.search}`
+
+    if (currentPath !== nextPath) {
       window.history.pushState({ mode }, '', nextPath)
     }
+
     setViewMode(mode)
+    setUsesLocalDraft(nextUsesLocalDraft)
+
+    if (mode === 'admin') {
+      setQuiz(loadStoredQuiz())
+    } else if (!draftPreview) {
+      setQuiz(loadPublishedQuiz())
+    }
   }
 
   function saveNow() {
+    setUsesLocalDraft(true)
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(quiz))
     setSaveState('saved now')
     window.setTimeout(() => setSaveState('saved'), 900)
@@ -145,6 +184,7 @@ function App() {
           selectedNodeId={selectedNodeId}
           onQuizChange={(nextQuiz) => {
             setSaveState('saving')
+            setUsesLocalDraft(true)
             setQuiz(nextQuiz)
           }}
           onSelectedNodeChange={setSelectedNodeId}
