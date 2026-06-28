@@ -1,6 +1,7 @@
 import type { QuizEvaluation } from './quizEngine'
 import { formatNumber } from './quizEngine'
 import type { QuizModel, ResultNode } from '../types'
+import { getFontFamilyStack, getQuizAppearance } from './appearance'
 
 export interface StoryImageInput {
   quiz: QuizModel
@@ -11,7 +12,6 @@ export interface StoryImageInput {
 
 const STORY_WIDTH = 1080
 const STORY_HEIGHT = 1920
-const STORY_FONT_STACK = '"Noto Sans Thai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const normalized = hex.replace('#', '')
@@ -147,6 +147,10 @@ async function waitForStoryFonts() {
   }
 }
 
+function storyFont(weight: number, size: number, fontStack: string, fontScale: number): string {
+  return `${weight} ${Math.round(size * fontScale)}px ${fontStack}`
+}
+
 function loadCanvasImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -224,6 +228,13 @@ export async function createStoryImageBlob({
   }
   await waitForStoryFonts()
 
+  const appearance = getQuizAppearance(quiz)
+  const fontStack = getFontFamilyStack(appearance.fontFamily)
+  const fontScale = appearance.fontScale
+  const weight = appearance.fontWeight
+  const mediumWeight = Math.min(weight + 100, 850)
+  const boldWeight = Math.min(weight + 200, 900)
+  const heavyWeight = Math.min(weight + 300, 900)
   const ranking = evaluation.ranking.find((item) => item.resultId === result.id)
   const gradient = context.createLinearGradient(0, 0, STORY_WIDTH, STORY_HEIGHT)
   gradient.addColorStop(0, colorWithAlpha(result.color, 0.9))
@@ -243,26 +254,26 @@ export async function createStoryImageBlob({
   context.textAlign = 'left'
   context.textBaseline = 'alphabetic'
   context.fillStyle = '#24413d'
-  context.font = `800 34px ${STORY_FONT_STACK}`
+  context.font = storyFont(heavyWeight, 34, fontStack, fontScale)
   context.fillText('ANIMAL PROFILE QUIZ', 144, 215)
 
   await drawResultVisual(context, result)
 
   context.textAlign = 'left'
   context.fillStyle = '#43524f'
-  context.font = `800 46px ${STORY_FONT_STACK}`
+  context.font = storyFont(heavyWeight, 46, fontStack, fontScale)
   context.fillText('ฉันคือ', 144, 560)
 
   context.fillStyle = '#12201e'
-  context.font = `900 104px ${STORY_FONT_STACK}`
+  context.font = storyFont(heavyWeight, 104, fontStack, fontScale)
   wrapText(context, result.title, 144, 670, 792, 118, 2)
 
   context.fillStyle = result.color
-  context.font = `800 44px ${STORY_FONT_STACK}`
+  context.font = storyFont(heavyWeight, 44, fontStack, fontScale)
   context.fillText(result.subtitle, 144, 872)
 
   context.fillStyle = '#3a4845'
-  context.font = `500 34px ${STORY_FONT_STACK}`
+  context.font = storyFont(weight, 34, fontStack, fontScale)
   wrapText(context, result.description, 144, 940, 792, 48, 5)
 
   const cardTop = 1210
@@ -271,11 +282,11 @@ export async function createStoryImageBlob({
   context.fill()
 
   context.fillStyle = '#182623'
-  context.font = `850 34px ${STORY_FONT_STACK}`
+  context.font = storyFont(heavyWeight, 34, fontStack, fontScale)
   context.fillText('คะแนนที่ใกล้ที่สุด', 150, cardTop + 62)
 
   context.fillStyle = '#63716e'
-  context.font = `700 26px ${STORY_FONT_STACK}`
+  context.font = storyFont(boldWeight, 26, fontStack, fontScale)
   context.fillText(
     ranking ? `distance ${formatNumber(ranking.distance)}` : 'direct route',
     150,
@@ -292,7 +303,7 @@ export async function createStoryImageBlob({
     const targetX = 504 + Math.min(Math.max(target / max, 0), 1) * 310
 
     context.fillStyle = '#243330'
-    context.font = `700 24px ${STORY_FONT_STACK}`
+    context.font = storyFont(boldWeight, 24, fontStack, fontScale)
     context.fillText(dimension.label, 150, top + 21)
 
     context.fillStyle = '#e8eeeb'
@@ -309,16 +320,16 @@ export async function createStoryImageBlob({
     context.fillRect(targetX - 3, top - 6, 6, 30)
 
     context.fillStyle = '#64716e'
-    context.font = `700 22px ${STORY_FONT_STACK}`
+    context.font = storyFont(boldWeight, 22, fontStack, fontScale)
     context.fillText(formatNumber(value), 842, top + 21)
   })
 
   context.fillStyle = '#182623'
-  context.font = `900 38px ${STORY_FONT_STACK}`
+  context.font = storyFont(heavyWeight, 38, fontStack, fontScale)
   context.fillText(quiz.title, 118, 1698)
 
   context.fillStyle = '#5c6966'
-  context.font = `600 25px ${STORY_FONT_STACK}`
+  context.font = storyFont(mediumWeight, 25, fontStack, fontScale)
   wrapText(context, shareUrl, 118, 1744, 844, 34, 2)
 
   return canvasToBlob(canvas)

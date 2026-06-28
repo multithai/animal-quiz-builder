@@ -414,6 +414,11 @@ export const sampleQuiz: QuizModel = {
     mode: 'profile-distance',
     dimensions,
   },
+  appearance: {
+    fontFamily: 'noto-sans-thai',
+    fontScale: 1,
+    fontWeight: 500,
+  },
   nodes: [...questions, ...results],
   edges,
 }

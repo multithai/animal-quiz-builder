@@ -33,6 +33,7 @@ import {
 import type {
   AnswerOption,
   QuestionNode,
+  QuizAppearanceConfig,
   QuizModel,
   QuizNode,
   QuizEdge,
@@ -49,6 +50,12 @@ import {
   isQuestionNode,
   isResultNode,
 } from '../lib/quizEngine'
+import {
+  FONT_OPTIONS,
+  FONT_WEIGHT_OPTIONS,
+  getQuizAppearance,
+  normalizeQuizAppearance,
+} from '../lib/appearance'
 
 interface AdminBuilderProps {
   quiz: QuizModel
@@ -476,7 +483,7 @@ export function AdminBuilder({
         if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges)) {
           throw new Error('Invalid quiz file')
         }
-        onQuizChange(parsed)
+        onQuizChange(normalizeQuizAppearance(parsed))
         onSelectedNodeChange(null)
       } catch {
         window.alert('ไฟล์ JSON นี้ไม่ใช่ quiz config ที่ถูกต้อง')
@@ -1109,6 +1116,18 @@ function ResultInspector({
 }
 
 function GlobalInspector({ quiz, onQuizChange }: Pick<InspectorProps, 'quiz' | 'onQuizChange'>) {
+  const appearance = getQuizAppearance(quiz)
+
+  function updateAppearance(patch: Partial<QuizAppearanceConfig>) {
+    onQuizChange({
+      ...quiz,
+      appearance: {
+        ...appearance,
+        ...patch,
+      },
+    })
+  }
+
   function updateDimension(dimensionId: string, patch: Partial<ScoreDimension>) {
     onQuizChange({
       ...quiz,
@@ -1197,6 +1216,70 @@ function GlobalInspector({ quiz, onQuizChange }: Pick<InspectorProps, 'quiz' | '
           ))}
         </select>
       </label>
+
+      <div className="inspector-section">
+        <div className="section-heading">
+          <span>Typography</span>
+          <strong>{Math.round(appearance.fontScale * 100)}%</strong>
+        </div>
+        <label className="field">
+          <span>font</span>
+          <select
+            value={appearance.fontFamily}
+            onChange={(event) =>
+              updateAppearance({ fontFamily: event.currentTarget.value as QuizAppearanceConfig['fontFamily'] })
+            }
+          >
+            {FONT_OPTIONS.map((font) => (
+              <option key={font.id} value={font.id}>
+                {font.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="range-field">
+          <span>
+            ขนาดตัวอักษร
+            <b>{Math.round(appearance.fontScale * 100)}%</b>
+          </span>
+          <div>
+            <input
+              type="range"
+              min="0.85"
+              max="1.25"
+              step="0.05"
+              value={appearance.fontScale}
+              onChange={(event) => updateAppearance({ fontScale: Number(event.currentTarget.value) })}
+            />
+            <input
+              type="number"
+              min="0.85"
+              max="1.25"
+              step="0.05"
+              value={appearance.fontScale}
+              onChange={(event) => updateAppearance({ fontScale: Number(event.currentTarget.value) })}
+            />
+          </div>
+        </label>
+        <label className="field">
+          <span>ความหนา</span>
+          <select
+            value={appearance.fontWeight}
+            onChange={(event) => updateAppearance({ fontWeight: Number(event.currentTarget.value) })}
+          >
+            {FONT_WEIGHT_OPTIONS.map((weight) => (
+              <option key={weight.value} value={weight.value}>
+                {weight.label} ({weight.value})
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="font-preview">
+          <span>ตัวอย่าง</span>
+          <strong>คุณมีสไตล์เหมือนสัตว์แบบไหน</strong>
+          <small>ฟอนต์ ขนาด และความหนานี้จะใช้กับหน้าเล่น Quiz ด้วย</small>
+        </div>
+      </div>
 
       <div className="inspector-section">
         <div className="section-heading">

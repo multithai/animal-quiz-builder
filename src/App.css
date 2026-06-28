@@ -2,6 +2,96 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  font-family: var(--font);
+  font-size: calc(16px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight);
+}
+
+.app-shell button,
+.app-shell input,
+.app-shell select,
+.app-shell textarea {
+  font-family: inherit;
+}
+
+.brand-lockup strong,
+.toolbar-title strong,
+.graph-node h3 {
+  font-size: calc(15px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-bold);
+}
+
+.brand-lockup span,
+.toolbar-title span,
+.progress-meta,
+.hint-text,
+.share-panel span,
+.share-panel p,
+.section-heading strong,
+.profile-row small,
+.ranking-item small,
+.guide-grid p,
+.guide-note,
+.graph-answer-row small,
+.inspector-header small,
+.field span,
+.range-field > span,
+.route-detail-card span,
+.route-detail-card small,
+.field small {
+  font-size: calc(12px * var(--font-scale, 1));
+}
+
+.guide-header p,
+.guide-grid p,
+.mini-button,
+.graph-answer-row span {
+  font-size: calc(13px * var(--font-scale, 1));
+}
+
+.node-kicker,
+.route-edge-popup span {
+  font-size: calc(11px * var(--font-scale, 1));
+}
+
+.eyebrow {
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-heavy);
+}
+
+.question-panel h1,
+.result-panel h1 {
+  font-size: calc(36px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-heavy);
+}
+
+.empty-state h2 {
+  font-size: calc(26px * var(--font-scale, 1));
+}
+
+.guide-header h2 {
+  font-size: calc(22px * var(--font-scale, 1));
+}
+
+.answer-button span,
+.profile-row span,
+.section-heading span,
+.history-card b,
+.ranking-item b,
+.share-button,
+.primary-action,
+.tool-button,
+.guide-button {
+  font-weight: var(--app-font-weight-bold);
+}
+
+.node-kicker,
+.route-delete-action,
+.route-edge-popup button,
+.share-panel span,
+.field span,
+.range-field > span {
+  font-weight: var(--app-font-weight-heavy);
 }
 
 .app-header {
@@ -1143,6 +1233,109 @@
   gap: 7px;
 }
 
+.font-preview {
+  display: grid;
+  gap: 4px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+}
+
+.font-preview span,
+.font-preview small {
+  color: var(--muted);
+  font-size: calc(12px * var(--font-scale, 1));
+}
+
+.font-preview strong {
+  color: var(--text);
+  font-size: calc(19px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-heavy);
+  line-height: 1.35;
+}
+
+.app-shell .brand-lockup strong,
+.app-shell .toolbar-title strong,
+.app-shell .graph-node h3 {
+  font-size: calc(15px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-bold);
+}
+
+.app-shell .brand-lockup span,
+.app-shell .toolbar-title span,
+.app-shell .progress-meta,
+.app-shell .hint-text,
+.app-shell .share-panel span,
+.app-shell .share-panel p,
+.app-shell .section-heading strong,
+.app-shell .profile-row small,
+.app-shell .ranking-item small,
+.app-shell .graph-answer-row small,
+.app-shell .inspector-header small,
+.app-shell .field span,
+.app-shell .range-field > span,
+.app-shell .route-detail-card span,
+.app-shell .route-detail-card small,
+.app-shell .field small {
+  font-size: calc(12px * var(--font-scale, 1));
+}
+
+.app-shell .guide-header p,
+.app-shell .guide-grid p,
+.app-shell .guide-note,
+.app-shell .mini-button,
+.app-shell .graph-answer-row span {
+  font-size: calc(13px * var(--font-scale, 1));
+}
+
+.app-shell .node-kicker,
+.app-shell .route-edge-popup span {
+  font-size: calc(11px * var(--font-scale, 1));
+}
+
+.app-shell .eyebrow {
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-heavy);
+}
+
+.app-shell .question-panel h1,
+.app-shell .result-panel h1 {
+  font-size: calc(36px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-heavy);
+}
+
+.app-shell .empty-state h2 {
+  font-size: calc(26px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-heavy);
+}
+
+.app-shell .guide-header h2 {
+  font-size: calc(22px * var(--font-scale, 1));
+  font-weight: var(--app-font-weight-heavy);
+}
+
+.app-shell .answer-button span,
+.app-shell .profile-row span,
+.app-shell .section-heading span,
+.app-shell .history-card b,
+.app-shell .ranking-item b,
+.app-shell .share-button,
+.app-shell .primary-action,
+.app-shell .tool-button,
+.app-shell .guide-button {
+  font-weight: var(--app-font-weight-bold);
+}
+
+.app-shell .node-kicker,
+.app-shell .route-delete-action,
+.app-shell .route-edge-popup button,
+.app-shell .share-panel span,
+.app-shell .field span,
+.app-shell .range-field > span {
+  font-weight: var(--app-font-weight-heavy);
+}
+
 @media (max-width: 1040px) {
   .app-header,
   .admin-toolbar {
@@ -1223,7 +1416,7 @@
 
   .question-panel h1,
   .result-panel h1 {
-    font-size: 28px;
+    font-size: calc(28px * var(--font-scale, 1));
   }
 
   .result-panel {

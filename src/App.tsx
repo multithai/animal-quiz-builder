@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { BookOpen, GitBranch, Play, Settings2 } from 'lucide-react'
 import './App.css'
 import { AdminBuilder } from './components/AdminBuilder'
 import { QuizPlayer } from './components/QuizPlayer'
 import { UserGuideDialog } from './components/UserGuideDialog'
 import { sampleQuiz } from './data/sampleQuiz'
+import { getAppearanceCssVariables, normalizeQuizAppearance } from './lib/appearance'
 import type { QuizModel } from './types'
 
 const STORAGE_KEY = 'animal-quiz-builder-v1'
@@ -35,7 +36,7 @@ function getViewPath(mode: ViewMode): string {
 }
 
 function cloneQuiz(quiz: QuizModel): QuizModel {
-  return JSON.parse(JSON.stringify(quiz)) as QuizModel
+  return normalizeQuizAppearance(JSON.parse(JSON.stringify(quiz)) as QuizModel)
 }
 
 function loadStoredQuiz(): QuizModel {
@@ -46,7 +47,9 @@ function loadStoredQuiz(): QuizModel {
     }
 
     const parsed = JSON.parse(stored) as QuizModel
-    return Array.isArray(parsed.nodes) && Array.isArray(parsed.edges) ? parsed : cloneQuiz(sampleQuiz)
+    return Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)
+      ? normalizeQuizAppearance(parsed)
+      : cloneQuiz(sampleQuiz)
   } catch {
     return cloneQuiz(sampleQuiz)
   }
@@ -95,7 +98,10 @@ function App() {
   }
 
   return (
-    <div className={`app-shell ${viewMode === 'play' ? 'public-play-shell' : 'admin-app-shell'}`}>
+    <div
+      className={`app-shell ${viewMode === 'play' ? 'public-play-shell' : 'admin-app-shell'}`}
+      style={getAppearanceCssVariables(quiz) as CSSProperties}
+    >
       {viewMode === 'admin' ? (
         <header className="app-header">
           <div className="brand-lockup">

@@ -6,6 +6,13 @@ export type ScoreMode = 'profile-distance'
 
 export type ScoreProfile = Record<string, number>
 
+export type QuizFontFamily =
+  | 'noto-sans-thai'
+  | 'prompt'
+  | 'kanit'
+  | 'sarabun'
+  | 'ibm-plex-sans-thai'
+
 export interface Position {
   x: number
   y: number
@@ -68,12 +75,19 @@ export interface QuizScoringConfig {
   dimensions: ScoreDimension[]
 }
 
+export interface QuizAppearanceConfig {
+  fontFamily: QuizFontFamily
+  fontScale: number
+  fontWeight: number
+}
+
 export interface QuizModel {
   id: string
   title: string
   description: string
   startNodeId: string
   scoring: QuizScoringConfig
+  appearance?: QuizAppearanceConfig
   nodes: QuizNode[]
   edges: QuizEdge[]
 }
