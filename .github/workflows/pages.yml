@@ -35,7 +35,10 @@ jobs:
         run: npm run build -- --base=/${{ github.event.repository.name }}/
 
       - name: Create SPA fallback
-        run: cp dist/index.html dist/404.html
+        run: |
+          mkdir -p dist/admin
+          cp dist/index.html dist/admin/index.html
+          cp dist/index.html dist/404.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
