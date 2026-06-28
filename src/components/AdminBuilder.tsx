@@ -71,6 +71,49 @@ function uid(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 }
 
+const MAX_RESULT_IMAGE_SIZE = 960
+const RESULT_IMAGE_QUALITY = 0.82
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(new Error('Unable to read image file'))
+    reader.readAsDataURL(file)
+  })
+}
+
+function loadImage(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('Unable to load image file'))
+    image.src = dataUrl
+  })
+}
+
+async function prepareResultImage(file: File): Promise<string> {
+  const dataUrl = await readFileAsDataUrl(file)
+  const image = await loadImage(dataUrl)
+  const scale = Math.min(1, MAX_RESULT_IMAGE_SIZE / Math.max(image.width, image.height))
+  const width = Math.max(1, Math.round(image.width * scale))
+  const height = Math.max(1, Math.round(image.height * scale))
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+
+  const context = canvas.getContext('2d')
+  if (!context) {
+    return dataUrl
+  }
+
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, width, height)
+  context.drawImage(image, 0, 0, width, height)
+
+  return canvas.toDataURL('image/jpeg', RESULT_IMAGE_QUALITY)
+}
+
 function scoreSummary(answer: AnswerOption, dimensions: ScoreDimension[]): string {
   if (answer.effects.length === 0) {
     return 'no score'
@@ -111,7 +154,9 @@ function ResultCardNode({ data, selected }: NodeProps<ResultGraphNode>) {
       style={{ ['--node-color' as string]: data.node.color }}
     >
       <Handle type="target" position={Position.Left} id="in" />
-      <div className="result-node-visual">{data.node.emoji}</div>
+      <div className="result-node-visual">
+        {data.node.imageUrl ? <img src={data.node.imageUrl} alt="" /> : <span>{data.node.emoji}</span>}
+      </div>
       <div>
         <div className="node-kicker">Result</div>
         <h3>{data.node.title}</h3>
@@ -716,10 +761,30 @@ function ResultInspector({
   deleteNode,
   onQuizChange,
 }: NodeInspectorProps & { node: ResultNode }) {
+  const imageInputRef = useRef<HTMLInputElement | null>(null)
+
   function updateResult(patch: Partial<ResultNode>) {
     onQuizChange(
       replaceNode(node.id, (item) => (isResultNode(item) ? { ...item, ...patch } : item)),
     )
+  }
+
+  async function uploadImage(file: File | undefined) {
+    if (!file) {
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      window.alert('กรุณาเลือกไฟล์รูปภาพ')
+      return
+    }
+
+    try {
+      const imageUrl = await prepareResultImage(file)
+      updateResult({ imageUrl })
+    } catch {
+      window.alert('อัปโหลดรูปไม่สำเร็จ ลองเลือกรูปใหม่อีกครั้ง')
+    }
   }
 
   return (
@@ -732,7 +797,9 @@ function ResultInspector({
       />
 
       <div className="result-preview" style={{ ['--result-color' as string]: node.color }}>
-        <span>{node.emoji}</span>
+        <div className="result-preview-media">
+          {node.imageUrl ? <img src={node.imageUrl} alt="" /> : <span>{node.emoji}</span>}
+        </div>
         <b>{node.title}</b>
       </div>
 
@@ -770,13 +837,37 @@ function ResultInspector({
         </label>
       </div>
 
-      <label className="field">
-        <span>image URL</span>
+      <div className="field image-upload-field">
+        <span>result image</span>
+        <div className="image-upload-row">
+          <button className="tool-button" type="button" onClick={() => imageInputRef.current?.click()}>
+            <Upload size={16} />
+            อัปโหลดรูป
+          </button>
+          {node.imageUrl ? (
+            <button className="mini-button danger" type="button" onClick={() => updateResult({ imageUrl: '' })}>
+              <Trash2 size={14} />
+              ลบรูป
+            </button>
+          ) : null}
+        </div>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(event) => {
+            void uploadImage(event.currentTarget.files?.[0])
+            event.currentTarget.value = ''
+          }}
+        />
         <input
           value={node.imageUrl ?? ''}
+          placeholder="วาง image URL หรืออัปโหลดไฟล์"
           onChange={(event) => updateResult({ imageUrl: event.currentTarget.value })}
         />
-      </label>
+        <small>รูปที่อัปโหลดจะถูกย่ออัตโนมัติและบันทึกไว้ใน quiz config</small>
+      </div>
 
       <div className="inspector-section">
         <div className="section-heading">

@@ -138,6 +138,62 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   })
 }
 
+function loadCanvasImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    if (!src.startsWith('data:')) {
+      image.crossOrigin = 'anonymous'
+      image.referrerPolicy = 'no-referrer'
+    }
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('Unable to load result image'))
+    image.src = src
+  })
+}
+
+function drawCoverImage(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const imageRatio = image.width / image.height
+  const boxRatio = width / height
+  const sourceWidth = imageRatio > boxRatio ? image.height * boxRatio : image.width
+  const sourceHeight = imageRatio > boxRatio ? image.height : image.width / boxRatio
+  const sourceX = (image.width - sourceWidth) / 2
+  const sourceY = (image.height - sourceHeight) / 2
+
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height)
+}
+
+async function drawResultVisual(context: CanvasRenderingContext2D, result: ResultNode) {
+  if (result.imageUrl) {
+    try {
+      const image = await loadCanvasImage(result.imageUrl)
+      const imageSize = 320
+      const imageX = (STORY_WIDTH - imageSize) / 2
+      const imageY = 216
+
+      context.save()
+      roundedRect(context, imageX, imageY, imageSize, imageSize, 44)
+      context.clip()
+      drawCoverImage(context, image, imageX, imageY, imageSize, imageSize)
+      context.restore()
+      return
+    } catch {
+      // External URLs can fail CORS; fallback keeps story generation usable.
+    }
+  }
+
+  context.fillStyle = colorWithAlpha(result.color, 0.94)
+  context.font = '800 230px "Segoe UI Emoji", "Apple Color Emoji", system-ui'
+  context.textAlign = 'center'
+  context.fillText(result.emoji || '✦', STORY_WIDTH / 2, 468)
+}
+
 export function buildStoryFileName(resultTitle: string): string {
   const safeTitle = resultTitle.replace(/[\\/:*?"<>|]+/g, '-').trim() || 'result'
   return `animal-quiz-${safeTitle}-story.png`
@@ -180,10 +236,7 @@ export async function createStoryImageBlob({
   context.font = '800 34px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
   context.fillText('ANIMAL PROFILE QUIZ', 144, 215)
 
-  context.fillStyle = colorWithAlpha(result.color, 0.94)
-  context.font = '800 230px "Segoe UI Emoji", "Apple Color Emoji", system-ui'
-  context.textAlign = 'center'
-  context.fillText(result.emoji || '✦', STORY_WIDTH / 2, 468)
+  await drawResultVisual(context, result)
 
   context.textAlign = 'left'
   context.fillStyle = '#43524f'
